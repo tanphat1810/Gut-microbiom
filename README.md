@@ -1,7 +1,7 @@
 # Nextflow cho 16srRNA full-lenght tren gut microbiom
 
 # Tổng quan
-![Alt text](relative/path/to/image.png)
+
 Pipeline Nextflow này xử lý dữ liệu microbiome sử dụng các định dạng đầu vào của QIIME 2. Nó thực hiện:
 
 * Tóm tắt kiểm tra chất lượng (QC)
