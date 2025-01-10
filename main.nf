@@ -1,4 +1,4 @@
-#!/usr/bin/env nextflow
+
 nextflow.enable.dsl=2
 
 process readsQC {
@@ -90,8 +90,8 @@ process importToQiime {
     """
 }
 
-process trimAndDenoiseASVs {
-    // Sử dụng container Docker chứa QIIME 2 để loại bỏ nhiễu và cắt tỉa primer
+process denoiseCCS {
+    // Sử dụng container Docker chứa QIIME 2 để loại bỏ nhiễu từ dữ liệu PacBio CCS
     container 'qiime2/core:2023.2'
 
     input:
@@ -111,9 +111,8 @@ process trimAndDenoiseASVs {
 
     mkdir -p dada2_output
 
-    qiime dada2 denoise-single \
+    qiime dada2 denoise-ccs \
         --i-demultiplexed-seqs ${demux_qza} \
-        --p-trunc-len ${params.trunc_len} \
         --o-table dada2_output/table.qza \
         --o-representative-sequences dada2_output/rep_seqs.qza \
         --o-denoising-stats dada2_output/stats.qza
@@ -125,7 +124,7 @@ process filterASVs {
     container 'qiime2/core:2023.2'
 
     input:
-    path table_qza from trimAndDenoiseASVs.out.collect()[0]
+    path table_qza from denoiseCCS.out.collect()[0]
 
     output:
     path "filtered_output/filtered_table.qza"
@@ -182,7 +181,7 @@ process assignTaxonomy {
     container 'qiime2/core:2023.2'
 
     input:
-    path rep_seqs from trimAndDenoiseASVs.out.collect()[1]
+    path rep_seqs from denoiseCCS.out.collect()[1]
 
     output:
     path "taxonomy_output/taxonomy.qza"
@@ -235,7 +234,7 @@ process buildPhyloTree {
     container 'qiime2/core:2023.2'
 
     input:
-    path rep_seqs from trimAndDenoiseASVs.out.collect()[1]
+    path rep_seqs from denoiseCCS.out.collect()[1]
 
     output:
     path "phylo_output/rooted_tree.qza"
@@ -271,8 +270,8 @@ workflow {
     // Giai đoạn 4: Import dữ liệu vào QIIME 2
     importToQiime()
 
-    // Giai đoạn 5: Loại bỏ nhiễu và cắt tỉa với DADA2
-    trimAndDenoiseASVs()
+    // Giai đoạn 5: Loại bỏ nhiễu từ dữ liệu PacBio CCS
+    denoiseCCS()
 
     // Giai đoạn 6: Lọc bỏ các ASVs và mẫu không đạt tần suất tối thiểu
     filterASVs()
@@ -281,11 +280,3 @@ workflow {
     removeChimeras()
 
     // Giai đoạn 8: Phân loại taxon bằng SILVA
-    assignTaxonomy()
-
-    // Giai đoạn 9: Tạo biểu đồ phân loại vi sinh vật
-    generateBarplot()
-
-    // Giai đoạn 10: Xây dựng cây phát sinh loài và tính toán chỉ số đa dạng
-    buildPhyloTree()
-}
