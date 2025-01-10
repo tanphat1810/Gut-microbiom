@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 process readsQC {
-    // Sử dụng container Docker chứa FastQC và MultiQC để kiểm tra chất lượng đoạn đọc
+    // FastQC và MultiQC để kiểm tra chất lượng đoạn đọc
     container 'biocontainers/fastqc:v0.11.9_cv8'
     container 'biocontainers/multiqc:v1.11_cv1'
 
@@ -22,7 +22,7 @@ process readsQC {
 }
 
 process filterReads {
-    // Sử dụng container Docker chứa SeqKit để lọc dữ liệu đoạn đọc
+    // SeqKit để lọc dữ liệu đoạn đọc Q=20
     container 'quay.io/biocontainers/seqkit:2.3.0--h9a82719_0'
 
     input:
@@ -44,7 +44,7 @@ process filterReads {
 }
 
 process readsQCFiltered {
-    // Sử dụng container Docker chứa FastQC và MultiQC để kiểm tra chất lượng đoạn đọc sau khi lọc
+    // FastQC và MultiQC để kiểm tra chất lượng đoạn đọc sau khi lọc
     container 'biocontainers/fastqc:v0.11.9_cv8'
     container 'biocontainers/multiqc:v1.11_cv1'
 
@@ -64,7 +64,7 @@ process readsQCFiltered {
 }
 
 process importToQiime {
-    // Sử dụng container Docker chứa QIIME 2 để import dữ liệu vào định dạng QIIME Artifact
+    // QIIME 2 để import dữ liệu
     container 'qiime2/core:2023.2'
 
     input:
@@ -91,7 +91,7 @@ process importToQiime {
 }
 
 process denoiseCCS {
-    // Sử dụng container Docker chứa QIIME 2 để loại bỏ nhiễu từ dữ liệu PacBio CCS
+    // QIIME 2 để loại bỏ nhiễu (dùng denoise ccs)
     container 'qiime2/core:2023.2'
 
     input:
@@ -120,7 +120,7 @@ process denoiseCCS {
 }
 
 process filterASVs {
-    // Sử dụng container Docker chứa QIIME 2 để lọc bỏ các ASVs và mẫu không đạt tần suất tối thiểu
+    // Lọc bỏ các ASVs và mẫu không đạt tần suất tối thiểu
     container 'qiime2/core:2023.2'
 
     input:
@@ -151,7 +151,7 @@ process filterASVs {
 }
 
 process removeChimeras {
-    // Sử dụng container Docker chứa QIIME 2 để loại bỏ các ASVs nhiễm chéo
+    // loại bỏ các ASVs nhiễm chéo
     container 'qiime2/core:2023.2'
 
     input:
@@ -177,7 +177,7 @@ process removeChimeras {
 }
 
 process assignTaxonomy {
-    // Sử dụng QIIME 2 và cơ sở dữ liệu SILVA để phân loại taxon
+    // Cơ sở dữ liệu SILVA để phân loại taxon
     container 'qiime2/core:2023.2'
 
     input:
@@ -203,7 +203,7 @@ process assignTaxonomy {
 }
 
 process generateBarplot {
-    // Sử dụng QIIME 2 để tạo biểu đồ phân loại vi sinh vật
+    // tạo taxa plot
     container 'qiime2/core:2023.2'
 
     input:
@@ -230,22 +230,18 @@ process generateBarplot {
 }
 
 process buildPhyloTree {
-    // Sử dụng QIIME 2 để xây dựng cây phát sinh loài và tính toán các chỉ số đa dạng
+    // xây dựng cây phát sinh loài và tính toán các chỉ số đa dạng
     container 'qiime2/core:2023.2'
-
     input:
     path rep_seqs from denoiseCCS.out.collect()[1]
-
     output:
     path "phylo_output/rooted_tree.qza"
-
     script:
     """
     if [ ! -f ${rep_seqs} ]; then
         echo "Error: Representative sequences not found for phylogenetic tree!"
         exit 1
     fi
-
     mkdir -p phylo_output
 
     qiime phylogeny align-to-tree-mafft-fasttree \
@@ -253,30 +249,12 @@ process buildPhyloTree {
         --o-rooted-tree phylo_output/rooted_tree.qza
     """
 }
-
 workflow {
-    // Tạo kênh cho đầu vào tệp FASTQ
     Channel.fromPath(params.fastq_files).set { fastq_files }
-
-    // Giai đoạn 1: Kiểm tra chất lượng đoạn đọc
     readsQC(fastq_files)
-
-    // Giai đoạn 2: Lọc dữ liệu và cắt tỉa
     filterReads(fastq_files)
-
-    // Giai đoạn 3: Kiểm tra chất lượng đoạn đọc sau khi lọc
     readsQCFiltered()
-
-    // Giai đoạn 4: Import dữ liệu vào QIIME 2
     importToQiime()
-
-    // Giai đoạn 5: Loại bỏ nhiễu từ dữ liệu PacBio CCS
     denoiseCCS()
-
-    // Giai đoạn 6: Lọc bỏ các ASVs và mẫu không đạt tần suất tối thiểu
     filterASVs()
-
-    // Giai đoạn 7: Loại bỏ các ASVs nhiễm chéo
     removeChimeras()
-
-    // Giai đoạn 8: Phân loại taxon bằng SILVA
