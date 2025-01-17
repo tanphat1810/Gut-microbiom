@@ -41,14 +41,39 @@ process filterReadsFromData {
     path fastq_file
 
     output:
-    path 'filtered_fastq/*', emit: filtered_reads
+    path 'filtered_fastq/*.fastq.gz', emit: filtered_reads
 
     script:
     """
     mkdir -p filtered_fastq
-    seqkit seq -Q 20 -o filtered_fastq/filtered_${fastq_file.baseName}.fastq ${fastq_file}
+    seqkit seq -Q 20 -o filtered_fastq/${fastq_file.baseName}.fastq ${fastq_file}
+    gzip filtered_fastq/${fastq_file.baseName}.fastq
     """
 }
+
+process createManifest {
+    input:
+    path filtered_reads
+
+    output:
+    path 'manifest.tsv', emit: manifest
+
+    script:
+    """
+    echo -e "sample-id\tabsolute-filepath\tdirection" > manifest.tsv
+    for file in ${filtered_reads}; do
+        sample_id=\$(basename "\$file" .fastq.gz)
+        abs_path=\$(realpath "\$file")
+        echo -e "\$sample_id\t\$abs_path\tforward" >> manifest.tsv
+    done
+
+    if [[ ! -s manifest.tsv ]]; then
+        echo "Error: manifest.tsv is empty. Check for missing files in filtered_reads directory." >&2
+        exit 1
+    fi
+    """
+}
+
 
 process readsQCFiltered {
     container 'quay.io/biocontainers/fastqc:0.11.9--0'
@@ -73,7 +98,7 @@ process multiqcFiltered {
     path 'fastqc_results/filtered/*'
 
     output:
-    path 'fastqc_results/filtered_multiqc_report.html', emit: filtered_multiqc
+    path 'fastqc_results/filtered/multiqc_report.html', emit: filtered_multiqc_report
 
     script:
     """
@@ -85,7 +110,7 @@ process importToQiime {
     container 'quay.io/qiime2/core:2023.2'
 
     input:
-    path fastq_dir
+    path manifest
 
     output:
     path 'imported_data/demux.qza', emit: demux_qza
@@ -94,10 +119,13 @@ process importToQiime {
     """
     mkdir -p imported_data
     qiime tools import \
-        --type 'SampleData[PairedEndSequencesWithQuality]' \
-        --input-path ${fastq_dir} \
-        --input-format CasavaOneEightSingleLanePerSampleDirFmt \
+        --type 'SampleData[SequencesWithQuality]' \
+        --input-path ${manifest} \
+        --input-format SingleEndFastqManifestPhred33V2 \
         --output-path imported_data/demux.qza
+    qiime demux summarize \
+        --i-data imported_data/demux.qza \
+        --o-visualization imported_data/demux_summary.qzv
     """
 }
 
@@ -119,7 +147,13 @@ process denoiseCCS {
         --i-demultiplexed-seqs ${demux_qza} \
         --o-table dada2_output/table.qza \
         --o-representative-sequences dada2_output/rep_seqs.qza \
-        --o-denoising-stats dada2_output/stats.qza
+        --o-denoising-stats dada2_output/stats.qza \
+        --p-min-len 50 \
+        --p-max-len 1000 \
+        --p-max-ee 10 \
+        --p-front 'none' \
+        --p-adapter 'none' \
+        --verbose
     """
 }
 
@@ -164,7 +198,7 @@ process assignTaxonomy {
     container 'quay.io/qiime2/core:2023.2'
 
     input:
-    path rep_seqs_qza
+    path chimera_free_table_qza
     path params.silva_classifier
 
     output:
@@ -174,7 +208,7 @@ process assignTaxonomy {
     """
     mkdir -p taxonomy_output
     qiime feature-classifier classify-sklearn \
-        --i-reads ${rep_seqs_qza} \
+        --i-reads ${chimera_free_table_qza} \
         --i-classifier ${params.silva_classifier} \
         --o-classification taxonomy_output/taxonomy.qza
     """
@@ -226,21 +260,20 @@ workflow {
 
     filtered_files = filterReadsFromData(fastq_files)
 
+    manifest = createManifest(filtered_files.filtered_reads)
+
     qc_filtered = readsQCFiltered(filtered_files.filtered_reads)
     multiqcFiltered(qc_filtered.filtered_qc)
 
-    // Gom tất cả các file FASTQ đã lọc vào một thư mục
-    filtered_fastq_dir = filtered_files.filtered_reads.collectFile(name: 'filtered_fastq_dir')
-
-    imported_data = importToQiime(filtered_fastq_dir)
+    imported_data = importToQiime(manifest.manifest)
 
     denoise_results = denoiseCCS(imported_data.demux_qza)
+
     filtered_asvs = filterASVs(denoise_results.table_qza)
     chimera_free_table = removeChimeras(filtered_asvs.filtered_table_qza)
 
-    taxonomy = assignTaxonomy(denoise_results.rep_seqs_qza, params.silva_classifier)
+    taxonomy = assignTaxonomy(chimera_free_table.chimera_free_table_qza, params.silva_classifier)
     barplot = generateBarplot(taxonomy.taxonomy_qza, chimera_free_table.chimera_free_table_qza)
 
     buildPhyloTree(denoise_results.rep_seqs_qza)
 }
-
