@@ -18,35 +18,11 @@ Pipeline này được thiết kế cho các nghiên cứu phân tích microbiom
 
 * Docker hoặc Singularity (để chạy container hóa)
 * Java 8 hoặc cao hơn
-# Tệp đầu vào
-## Tệp TSV mẫu
-Tệp này phải bao gồm:
-* sample-id: Mã định danh duy nhất cho mẫu
-* absolute-filepath: Đường dẫn đầy đủ đến tệp dữ liệu cho từng mẫu
-## Tệp TSV metadata
-Tệp này phải bao gồm:
-* sample_name: Tên của mẫu
-* condition: Nhóm hoặc điều kiện mà mỗi mẫu thuộc về
-## Sử dụng
-* Tải pipeline.
-* Chuẩn bị các tệp đầu vào (TSV mẫu và TSV metadata).
-* Chạy pipeline bằng lệnh sau:
-```bash
-nextflow run main.nf --input samples.tsv --metadata metadata.tsv --outdir results
-```
-## Tham số
---input: Đường dẫn đến tệp TSV mẫu
+# Cấu trúc thư mục mẫu
+* Gut-microbiom (tên có thể đặt tùy ý, đây là thư mục CD vào để chạy nextflow)
+** main.nf
+** nextflow.config
+** workflow.nf
+** params.json
+** 
 
---metadata: Đường dẫn đến tệp TSV metadata
-
---outdir: Thư mục nơi kết quả sẽ được lưu trữ
-
-# Đầu ra
-
-Pipeline tạo ra:
-
-Tóm tắt QC: Các chỉ số kiểm tra chất lượng cho dữ liệu đầu vào
-
-Kết quả phân loại Taxonomy: Phân loại SILVA cho từng mẫu
-
-Trực quan hóa: Các biểu đồ đại diện cho kết quả
