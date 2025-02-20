@@ -19,22 +19,27 @@ Pipeline này được thiết kế cho các nghiên cứu phân tích microbiom
 * Docker hoặc Singularity (để chạy container hóa)
 * Java 8 hoặc cao hơn
 ## Cấu trúc thư mục mẫu
-- Gut-microbiom (tên có thể đặt tùy ý, đây là thư mục CD vào để chạy nextflow)
 
- -- main.nf
- 
- -- nextflow.config
+📦 **Gut-microbiome** (thư mục chứa các file làm việc, cần cd vào)
+┣ 📜 main.nf
+┣ 📜 nextflow.config
+┣ 📜 workflow.nf
+┣ 📂 conf
+┃ ┗ 📜 base.config
+┣ 📂 modules _(Lưu các module)_
+┣ 📂 qiime_out (lưu đầu ra kết quả qiime2)
+┣ 📂 fastqc_result (lưu đầu ra fastqc)
+┗ 📂 seqkit_result (lưu đầu ra seqkit)
+## Lệnh chạy nextflow
 
- -- workflow.nf
+Lệnh chạy lúc bắt đầu 
 
- -- params.json
- 
- -- conf (thư mục lưu base.config)
+nextflow run main.nf --input "data/*.fastq.gz" --outdir results -profile docker -c nextflow.config (không chỉ định params.json, đối với gộp params vào nextflow.config)
 
- --- base.config
+nextflow run main.nf --input "data/*.fastq.gz" --outdir results --params-file params.json --profile docker -c nextflow.config (đối với tách riêng params.json ra)
 
- -- data (thư mục lưu data tệp fastq)
 
- -- metadata (thư mục lưu tệp metadata)
- 
+Lệnh resume
+
+nextflow run main.nf --input "data/*.fastq.gz" --outdir results -profile docker -c nextflow.config -resume
 
