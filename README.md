@@ -20,9 +20,21 @@ Pipeline này được thiết kế cho các nghiên cứu phân tích microbiom
 * Java 8 hoặc cao hơn
 ## Cấu trúc thư mục mẫu
 - Gut-microbiom (tên có thể đặt tùy ý, đây là thư mục CD vào để chạy nextflow)
+
  -- main.nf
+ 
  -- nextflow.config
+
  -- workflow.nf
+
  -- params.json
- -- 
+ 
+ -- conf (thư mục lưu base.config)
+
+ --- base.config
+
+ -- data (thư mục lưu data tệp fastq)
+
+ -- metadata (thư mục lưu tệp metadata)
+ 
 
