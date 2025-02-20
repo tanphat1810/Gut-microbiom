@@ -21,15 +21,25 @@ Pipeline này được thiết kế cho các nghiên cứu phân tích microbiom
 ## Cấu trúc thư mục mẫu
 
 📦 **Gut-microbiome** (thư mục chứa các file làm việc, cần cd vào)
+
 ┣ 📜 main.nf
+
 ┣ 📜 nextflow.config
+
 ┣ 📜 workflow.nf
+
 ┣ 📂 conf
+
 ┃ ┗ 📜 base.config
+
 ┣ 📂 modules _(Lưu các module)_
+
 ┣ 📂 qiime_out (lưu đầu ra kết quả qiime2)
+
 ┣ 📂 fastqc_result (lưu đầu ra fastqc)
+
 ┗ 📂 seqkit_result (lưu đầu ra seqkit)
+
 ## Lệnh chạy nextflow
 
 Lệnh chạy lúc bắt đầu 
