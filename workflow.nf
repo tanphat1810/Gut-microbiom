@@ -18,56 +18,58 @@ include { FILTER_SAMPLES } from './modules/qiime2_feature_sample.nf'
 include { FILTER_SEQS } from './modules/qiime2_filterseqs.nf'
 include { CLASSIFY_TAXONOMY } from './modules/classify_taxonomy.nf'
 include { BARPLOT } from './modules/taxonomy_barplot.nf'
+include { BUILD_PHYLOGENETIC_TREE } from './modules/build_phylogenetictree.nf'
+include { ALPHA_METRICS } from './modules/alpha_metrics.nf'
+include { FAITH_PD } from './modules/alpha_faith_pd.nf'
 channel_reads = Channel.fromPath(params.input)
-                       .map { [meta: [id: it.baseName], file: it] }
+        .map { [meta: [id: it.baseName], file: it] }
 workflow PACBIO_16S_PIPELINE {
-    // Chạy FastQC trên dữ liệu gốc
     FASTQC_RAW(channel_reads)
-    // Chạy SEQKIT_FILTER để lọc dữ liệu
     SEQKIT_FILTER(channel_reads)
-    // Nhận dữ liệu đã lọc từ SEQKIT_FILTER (đảm bảo chờ SEQKIT_FILTER hoàn tất)
-    filtered_reads = SEQKIT_FILTER.out.filtered
-        .map { meta, file -> tuple(meta, file) } // Đảm bảo giữ metadata đúng
+      filtered_reads = SEQKIT_FILTER.out.filtered
+        .map { meta, file -> tuple(meta, file) } 
         .view()
-    // Chạy FastQC trên dữ liệu đã lọc
     FASTQC_FILTERED(filtered_reads)
-    all_results = Channel.fromPath(params.fastqc_out)
-        .collect()  // Chờ toàn bộ kết quả FastQC trước khi chạy MultiQC
+      all_results = Channel.fromPath(params.fastqc_out)
+        .collect()  
         .view()
-MULTIQC(all_results)
-filtered_reads_path = SEQKIT_FILTER.out.filtered
-    .map { it[1] }  // Chỉ lấy đường dẫn file
-    .collect()
-    .view()
-GENERATE_TSV(filtered_reads_path)
-manifest = GENERATE_TSV.out
-    .filter { it.name.endsWith('.tsv') }  // Chỉ lấy file có đuôi .tsv
-    .flatten()
-    .view()
-QIIME_IMPORT(manifest)
-    qiime_data = QIIME_IMPORT.out.qiime_artifact
-    .toList()
-    .view()
+    MULTIQC(all_results)
+      filtered_reads_path = SEQKIT_FILTER.out.filtered
+        .map { it[1] }  
+        .collect()
+        .view()
+    GENERATE_TSV(filtered_reads_path)
+      manifest = GENERATE_TSV.out
+        .filter { it.name.endsWith('.tsv') }  
+        .flatten()
+        .view()
+    QIIME_IMPORT(manifest)
+      qiime_data = QIIME_IMPORT.out.qiime_artifact
+        .toList()
+        .view()
     DENOISE_CCS(qiime_data) 
-     FILTER_FEATURES(DENOISE_CCS.out.feature_table)
-     FILTER_SAMPLES(FILTER_FEATURES.out.filtered_feature_table)
-     filtered_table = FILTER_FEATURES.out.filtered_feature_table
-     FILTER_SEQS(
-        DENOISE_CCS.out.representative_sequences,
-        FILTER_SAMPLES.out.filtered_sample_table
+    FILTER_FEATURES(DENOISE_CCS.out.feature_table)
+    FILTER_SAMPLES(FILTER_FEATURES.out.filtered_feature_table)
+      filtered_table = FILTER_FEATURES.out.filtered_feature_table
+    FILTER_SEQS(
+      DENOISE_CCS.out.representative_sequences,
+      FILTER_SAMPLES.out.filtered_sample_table
     )
-classifier_path = file(params.classifier)
-CLASSIFY_TAXONOMY(
-        FILTER_SEQS.out.filtered_representative_seqs,
-        classifier_path
-        )
-
-
-metadata_file = file(params.metadata)  // Lấy metadata từ nextflow.config
-
-BARPLOT(
-        CLASSIFY_TAXONOMY.out.classified_taxonomy,
+      classifier_path = file(params.classifier)
+    CLASSIFY_TAXONOMY(
+      FILTER_SEQS.out.filtered_representative_seqs,
+      classifier_path
+    )
+      metadata_file = file(params.metadata)  // Lấy metadata từ nextflow.config
+    BARPLOT(
+      CLASSIFY_TAXONOMY.out.classified_taxonomy,
+      FILTER_SAMPLES.out.filtered_sample_table,
+      metadata_file
+    )
+    BUILD_PHYLOGENETIC_TREE(FILTER_SEQS.out.filtered_representative_seqs)
+    ALPHA_METRICS(FILTER_SAMPLES.out.filtered_sample_table)
+    FAITH_PD(
         FILTER_SAMPLES.out.filtered_sample_table,
-        metadata_file
-)
+        BUILD_PHYLOGENETIC_TREE.out.rooted_tree
+    )
 }
