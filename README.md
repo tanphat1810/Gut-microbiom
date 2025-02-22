@@ -64,7 +64,7 @@ Lệnh chạy lúc bắt đầu
 
 nextflow run main.nf --input "data/*.fastq.gz" --outdir results -profile docker -c nextflow.config (không chỉ định params.json, đối với gộp params vào nextflow.config)
 
-nextflow run main.nf --input "data/*.fastq.gz" --outdir results --params-file params.json --profile docker -c nextflow.config (đối với tách riêng params.json ra)
+nextflow run main.nf -params-file params.json -profile docker -c nextflow.config -resume (đối với tách riêng params.json ra)
 
 
 Lệnh resume
