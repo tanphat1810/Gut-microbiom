@@ -50,13 +50,13 @@ Dùng R script để tạo báo cáo và biểu đồ trực quan.
 
 ┣ 📂 modules _(Lưu các module)_
 
-┣ 📂 qiime_out (lưu đầu ra kết quả qiime2, tạo trước khi chạy nextflow)
+┣ 📂 metadata (lưu file metadata cho tạo taxonomy, tạo trước khi chạy nextflow)
 
-┣ 📂 metadata (lưu file metadata cho tạo taxonomy)
+┣ 📂 qiime_out (kết quả các process sẽ được copy vào, tạo trước khi chạy nextflow)
 
+┣ 📂 result (nextflow tự tạo, lưu tiến trình chạy nextflow)
 
-
-
+┣ 📂 work (lưu kết quả chính của các process, nextflow tự tạo, có thể dùng để resume)
 
 ## Lệnh chạy nextflow
 
