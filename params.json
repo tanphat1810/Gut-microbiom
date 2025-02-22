@@ -1,0 +1,34 @@
+{
+  "input": "data/*.fastq.gz",
+  "outdir": "results",
+  "seqkit_out": "seqkit_result/*.filtered.fastq.gz",
+  "classifier": "silva/silva-138-99-nb-classifier.qza",
+  "metadata": "metadata/metadata.tsv",
+  "qiime_denoise": {
+    "front": "AGAGTTTGATCMTGGCTCAG",
+    "adapter": "TACGGYTACCTTGTTACGACTT",
+    "max_mismatch": 2,
+    "indels": false,
+    "trunc_len": 0,
+    "trim_left": 0,
+    "max_ee": 2.0,
+    "trunc_q": 2,
+    "min_len": 1000,
+    "max_len": 1600,
+    "pooling_method": "independent",
+    "chimera_method": "consensus",
+    "min_fold_parent_over_abundance": 3.5,
+    "allow_one_off": false,
+    "n_threads": 4,
+    "n_reads_learn": 1000000,
+    "hashed_feature_ids": true,
+    "retain_all_samples": true
+  },
+  "filter": {
+    "min_feature_freq": 10
+  },
+  "filtersample": {
+    "min_sample_freq": 100
+  }
+}
+
