@@ -56,6 +56,9 @@ Dùng R script để tạo báo cáo và biểu đồ trực quan.
 
 ┣ 📂 qiime_out (lưu đầu ra kết quả qiime2, tạo trước khi chạy nextflow)
 
+┣ 📂 metadata (lưu file metadata cho tạo taxonomy)
+
+
 
 
 ## Lệnh chạy nextflow
