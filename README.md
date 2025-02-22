@@ -35,18 +35,7 @@ Dùng R script để tạo báo cáo và biểu đồ trực quan.
 ## Yêu cầu
 
 * Nextflow
-
-* Docker hoặc Singularity (để chạy container hóa)
-
-## Cấu trúc thư mục mẫu
-
-📦 **Gut-microbiome** (thư mục chứa các file làm việc, cần cd vào)
-
-┣ 📜 main.nf
-
-┣ 📜 nextflow.config
-
-┣ 📜 workflow.nf
+json
 
 ┣ 📂 conf
 
@@ -57,6 +46,7 @@ Dùng R script để tạo báo cáo và biểu đồ trực quan.
 ┣ 📂 qiime_out (lưu đầu ra kết quả qiime2, tạo trước khi chạy nextflow)
 
 ┣ 📂 metadata (lưu file metadata cho tạo taxonomy)
+
 
 
 
