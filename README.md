@@ -56,9 +56,7 @@ Dùng R script để tạo báo cáo và biểu đồ trực quan.
 
 ┣ 📂 qiime_out (lưu đầu ra kết quả qiime2, tạo trước khi chạy nextflow)
 
-┣ 📂 fastqc_result (lưu đầu ra fastqc, tạo trước khi chạy nextflow)
 
-┗ 📂 seqkit_result (lưu đầu ra seqkit, tạo trước khi chạy nextflow)
 
 ## Lệnh chạy nextflow
 
