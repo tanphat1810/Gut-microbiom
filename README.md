@@ -66,7 +66,7 @@ nextflow run main.nf --input "data/*.fastq.gz" --outdir results -profile docker 
 
 (không chỉ định params.json, đối với gộp params vào nextflow.config)
 
-nextflow run main.nf -params-file params.json -profile docker -c nextflow.config -resume 
+nextflow run main.nf -params-file params.json -profile docker -c nextflow.config 
 
 (đối với tách riêng params.json ra)
 
