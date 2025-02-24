@@ -1,7 +1,5 @@
 #!/usr/bin/env nextflow
-
 nextflow.enable.dsl=2
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     PacBio HiFi 16S rRNA Nextflow Pipeline
@@ -14,11 +12,8 @@ nextflow.enable.dsl=2
     - Trực quan hóa kết quả
 ----------------------------------------------------------------------------------------
 */
-
 // **IMPORT WORKFLOW**
 include { PACBIO_16S_PIPELINE } from './workflow.nf'
-
 workflow {
     PACBIO_16S_PIPELINE()
 }
-
