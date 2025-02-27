@@ -73,5 +73,5 @@ nextflow run main.nf -params-file params.json -profile docker -c nextflow.config
 
 Lệnh resume
 
-nextflow run main.nf --input "data/*.fastq.gz" --outdir results -profile docker -c nextflow.config -resume
+nextflow run main.nf --outdir results -profile docker -c nextflow.config -resume
 
