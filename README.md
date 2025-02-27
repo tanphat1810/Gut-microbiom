@@ -62,7 +62,7 @@ Dùng R script để tạo báo cáo và biểu đồ trực quan.
 
 Lệnh chạy lúc bắt đầu 
 
-nextflow run main.nf --input "data/*.fastq.gz" --outdir results -profile docker -c nextflow.config 
+nextflow run main.nf  --outdir results -profile docker -c nextflow.config 
 
 (không chỉ định params.json, đối với gộp params vào nextflow.config)
 
